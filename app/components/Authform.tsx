@@ -43,12 +43,12 @@ const Authfrorm = ({ type }: { type: FormType }) => {
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      if (type === "sign-in") {
+      if (type === "sign-up") {
         // Handle sign-in logic here
-        toast.success("Account signed in successfully");
+        toast.success("Account created successfully");
         router.push("/sign-in");
       } else {
-        toast.success("Account created successfully");
+        toast.success("sign-in account successfully");
         router.push("/");
       }
     } catch (error) {
@@ -63,7 +63,7 @@ const Authfrorm = ({ type }: { type: FormType }) => {
         <div className="flex flex-col gap-6 card py-14 px-10 m-auto">
           <div className="flex flex-row gap-2 justify-center">
             <Image src="/logo.svg" alt="logo" height={32} width={38} />
-            <h2 className="text-primary-100">PrepWise</h2>
+            <h2 className="text-primary-100">Inter_Prep</h2>
           </div>
 
           <h3>Practice job interviews with AI</h3>
