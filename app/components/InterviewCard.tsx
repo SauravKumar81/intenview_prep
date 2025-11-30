@@ -59,10 +59,10 @@ const InterviewCard = ({
               "No feedback available yet. Complete the interview to receive detailed feedback."}
           </p>
         </div>
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap justify-between">
                 <DisplayTechIcons techStack={techstack} />
               <Button className="btn-primary">
-                <Link href ={feedback ? `/interviews/${interviewId}/feedback`:`/interviews/${interviewId}`}>
+                <Link href ={feedback ? `/interviews/${interviewId}/feedback`:`/interviews/${interviewId}`}> View Interview
                 </Link>
           </Button>
         </div>

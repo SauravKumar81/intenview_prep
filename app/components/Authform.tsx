@@ -137,12 +137,13 @@ const Authfrorm = ({ type }: { type: FormType }) => {
           </Form>
 
           <p className="text-center">
-            {!isSignIn ? " New to PrepWise? " : "  Already have an account ? "}
+            {isSignIn ? " New to PrepWise? " : "  Already have an account ? "}
+            
             <Link
               href={!isSignIn ? "/sign-in" : "/sign-up"}
               className="font-bold text-user-primary ml-1"
             >
-              {!isSignIn ? "  Create an account" : "Sign In"}
+              {isSignIn ? "  Create an account" : "Sign In"}
             </Link>
           </p>
         </div>
