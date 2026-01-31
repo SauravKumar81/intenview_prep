@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { Loader2, Mic, MicOff, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 enum CallStatus {
   FETCHING = "FETCHING",
@@ -12,15 +13,25 @@ enum CallStatus {
   ASKING = "ASKING",
   LISTENING = "LISTENING",
   PROCESSING = "PROCESSING",
+  SAVING = "SAVING",
   FINISHED = "FINISHED",
 }
 
+interface QAPair {
+    question: string;
+    answer: string;
+}
+
 const Agent = ({ userName, role, techStack, questionCount }: AgentProps) => {
+  const router = useRouter();
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.FETCHING);
   const [questions, setQuestions] = useState<string[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [transcript, setTranscript] = useState("");
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  
+  // Store full conversation
+  const [qaPairs, setQaPairs] = useState<QAPair[]>([]);
   
   const recognitionRef = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -135,24 +146,61 @@ const Agent = ({ userName, role, techStack, questionCount }: AgentProps) => {
 
   const handleNextQuestion = () => {
       stopListening();
+      
+      // Save current answer
+      const currentQ = questions[currentQuestionIndex];
+      setQaPairs(prev => [...prev, { question: currentQ, answer: transcript || "No answer provided." }]);
+
       if (currentQuestionIndex < questions.length - 1) {
           setCurrentQuestionIndex(prev => prev + 1);
+          setTranscript("");
           setCallStatus(CallStatus.ASKING);
       } else {
-          setCallStatus(CallStatus.FINISHED);
-          speak("Thank you for completing the interview. Good luck!");
+          finishInterview();
       }
+  };
+
+  const finishInterview = async () => {
+      setCallStatus(CallStatus.SAVING);
+      
+      // Add the final answer if not already added (needs careful handling since state update is async)
+      const currentQ = questions[currentQuestionIndex];
+      const finalPairs = [...qaPairs, { question: currentQ, answer: transcript || "No answer provided." }];
+      
+      speak("Thank you. I am analyzing your responses now. Please wait.", async () => {
+          try {
+             const res = await fetch("/api/interview/save", {
+                 method: "POST",
+                 body: JSON.stringify({
+                     userId: "user1", // Hardcoded for now
+                     role,
+                     techStack,
+                     transcript: finalPairs,
+                     duration: 0 // Placeholder
+                 })
+             });
+             const data = await res.json();
+             if (data.interviewId) {
+                 router.push(`/interview/${data.interviewId}/feedback`);
+             }
+          } catch(e) {
+              console.error("Failed to save", e);
+              setCallStatus(CallStatus.FINISHED);
+          }
+      });
   };
 
 
   return (
     <div className="flex flex-col h-full bg-background relative overflow-hidden">
       
-      {/* Loading State */}
-      {callStatus === CallStatus.FETCHING && (
+      {/* Loading States */}
+      {(callStatus === CallStatus.FETCHING || callStatus === CallStatus.SAVING) && (
          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
              <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-             <p className="text-xl font-medium">Generating your interview...</p>
+             <p className="text-xl font-medium">
+                 {callStatus === CallStatus.FETCHING ? "Generating your interview..." : "Analyzing your performance..."}
+             </p>
          </div>
       )}
 
@@ -225,11 +273,7 @@ const Agent = ({ userName, role, techStack, questionCount }: AgentProps) => {
 
       {/* Control Bar */}
       <div className="h-24 bg-muted/40 backdrop-blur-md border-t border-white/5 flex items-center justify-center gap-6 px-4">
-         {callStatus === CallStatus.FINISHED ? (
-             <Button size="lg" className="rounded-full px-8 bg-green-600 hover:bg-green-700" onClick={() => window.location.href = '/'}>
-                 Finish Interview
-             </Button>
-         ) : (
+         {callStatus !== CallStatus.FINISHED && (
              <>
                 <Button 
                     variant={callStatus === "LISTENING" ? "destructive" : "outline"}
@@ -245,7 +289,7 @@ const Agent = ({ userName, role, techStack, questionCount }: AgentProps) => {
                     className="rounded-full px-8 text-lg font-medium"
                     onClick={handleNextQuestion}
                 >
-                    Next Question
+                    {currentQuestionIndex < questions.length - 1 ? "Next Question" : "Finish Interview"}
                 </Button>
              </>
          )}
