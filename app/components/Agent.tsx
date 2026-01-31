@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/utils";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { Loader2, Mic, MicOff, Volume2 } from "lucide-react";

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Mona_Sans } from "next/font/google";
+import Navbar from "@/components/Navbar";
 import "./globals.css";
 
 const monaSans = Mona_Sans({
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body
         className={`${monaSans.className} antialiased pattern`}
       >
+        <Navbar />
         {children}
       </body>
     </html>
