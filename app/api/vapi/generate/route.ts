@@ -1,6 +1,5 @@
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
-import { json, success } from "zod";
 import { getRandomInterviewCover } from "@/utils";
 import { db } from "@/firebase/admin";
 
